@@ -79,12 +79,13 @@ else
     echo "\"$modname\"," >> $enabledpath
     echo -e "[SYSTEM] Enabled $modname ($LINE) "
   done
+    sed -i '$ s/,$//' "$enabledpath" # remove last comma
     echo ']' >> $enabledpath
     echo -e "\n[SYSTEM] Finished loading mods."
 fi
 
 # Startup command
-server="/terraria-server/start-tModLoaderServer.sh -nosteam -arm -tmlsavedirectory \"/data/tModLoader\" -steamworkshopfolder \"/data/steamMods/steamapps/workshop\" -config \"$configPath\""
+server="/terraria-server/start-tModLoaderServer.sh -nosteam -arm -tmlsavedirectory \"/data/tModLoader\" -modpath \"/data/steamMods/steamapps/workshop\" -config \"$configPath\""
 
 # Trap the shutdown
 trap shutdown TERM INT

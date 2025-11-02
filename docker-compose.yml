@@ -28,6 +28,6 @@ services:
 
     volumes:
     ##### By default, the below setting will create a data directory on your host where this compose file lives.
-      - "./data:/data"
+      - "./data/Worlds:/terraria-server/Worlds"
       # Uncomment the below line if you plan to use a mapped config file. 
       # - "/path/to/config/config.txt:/root/terraria-server/serverconfig.txt"

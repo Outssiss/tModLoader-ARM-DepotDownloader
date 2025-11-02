@@ -101,37 +101,39 @@ RUN apt-get update \
     && apt-get install -y wget unzip tmux bash libsdl2-2.0-0 ca-certificates libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /data
-RUN mkdir /data/tModLoader
-RUN mkdir /data/tModLoader/Worlds
-RUN mkdir /data/tModLoader/Mods
-RUN mkdir /data/steamMods
-
 EXPOSE 7777
 
-WORKDIR /terraria-server
+# ==================== TERRARIA-SERVER-SERVER
+
+WORKDIR /terraria-server/server
 
 RUN wget https://github.com/tModLoader/tModLoader/releases/download/${TMOD_VERSION}/tModLoader.zip
 RUN unzip -o tModLoader.zip \
     && rm tModLoader.zip
 
 COPY DotNetInstall.sh ./LaunchUtils
+
+RUN chmod 755 ./LaunchUtils/DotNetInstall.sh
+RUN ./LaunchUtils/DotNetInstall.sh
+
+# ==================== TERRARIA-SERVER
+
+WORKDIR /terraria-server
+
 COPY entrypoint.sh .
 COPY inject.sh /usr/local/bin/inject
 COPY autosave.sh .
 COPY prepare-config.sh .
 
-RUN chmod 755 ./LaunchUtils/DotNetInstall.sh \
-    && chmod 755 ./LaunchUtils/ScriptCaller.sh \
-    && chmod 755 ./entrypoint.sh \
+ADD --chown=steam:steam https://raw.githubusercontent.com/tModLoader/tModLoader/1.4.4/patches/tModLoader/Terraria/release_extras/DedicatedServerUtils/manage-tModLoaderServer.sh .
+
+RUN chmod 755 ./entrypoint.sh \
     && chmod 755 ./autosave.sh \
     && chmod 755 /usr/local/bin/inject \
     && chmod 755 ./prepare-config.sh \
-    && chmod 755 ./start-tModLoaderServer.sh
+    && chmod 755 manage-tModLoaderServer.sh
 
-RUN ./LaunchUtils/DotNetInstall.sh
-
-RUN chown -R steam:steam /terraria-server /data
+RUN chown -R steam:steam /terraria-server
 
 USER steam
 # github runners has problems with it

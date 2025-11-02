@@ -69,7 +69,7 @@ else
       echo -e "[!!] Mod ID $LINE not found! Has it been downloaded?"
       continue
     fi
-    modname=$(ls -1 $(ls -d $modpath/$LINE/*/|tail -n 1) | sed -e 's/\.tmod$//')
+    modname=$(basename "$(find "$modpath/$LINE" -name '*.tmod' | sort | uniq | tail -n 1 | sed -e 's/\.tmod$//')")
     if [ $? -ne 0 ]; then
       echo -e " [!!] An error occurred while attempting to load $LINE."
       continue

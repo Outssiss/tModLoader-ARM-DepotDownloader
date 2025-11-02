@@ -5,7 +5,7 @@
 * I’m only mounting the “World” volume -- I’m not sure if this could cause loss of mod configurations on the server side (idk how this works)
 * mods are updated/downloaded every time the container restarts, so the mod files are always recreated
 
-* ---
+---
 
 # tModLoader Powered By Docker
 [![Discord](https://img.shields.io/discord/1132368789518950521?logo=discord&label=Discord%20Server&style=for-the-badge)](https://discord.gg/dHnVYYGed7)
@@ -232,4 +232,5 @@ _Credit to [ldericher](https://github.com/ldericher/tmodloader-docker) for this 
 
 # Notes
 I do not own tModLoader or Terraria. This Docker Image was created for players to easily host a game server with Docker, and is not intended to infringe on any Copyright, Trademark or Intellectual Property.
+
 

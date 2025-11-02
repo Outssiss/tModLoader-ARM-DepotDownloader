@@ -1,3 +1,12 @@
+# Fork readme:
+
+* arm64 only, x64 is not supported
+* several things were broken when I tried to run in my arm device, such as scripts that no longer existed, etc., so there are a significant number of changes that haven’t been widely tested
+* I’m only mounting the “World” volume -- I’m not sure if this could cause loss of mod configurations on the server side (idk how this works)
+* mods are updated/downloaded every time the container restarts, so the mod files are always recreated
+
+* ---
+
 # tModLoader Powered By Docker
 [![Discord](https://img.shields.io/discord/1132368789518950521?logo=discord&label=Discord%20Server&style=for-the-badge)](https://discord.gg/dHnVYYGed7)
 
@@ -223,3 +232,4 @@ _Credit to [ldericher](https://github.com/ldericher/tmodloader-docker) for this 
 
 # Notes
 I do not own tModLoader or Terraria. This Docker Image was created for players to easily host a game server with Docker, and is not intended to infringe on any Copyright, Trademark or Intellectual Property.
+

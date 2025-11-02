@@ -1,18 +1,6 @@
 # Builder is ubuntu-based because we need i386 libs
-FROM steamcmd/steamcmd:ubuntu-22 as builder
-
-# Install prerequisites to download steamcmd
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl tar
-WORKDIR /root/installer
-
-# Download and unpack installer
-# Insecure was added, apparently some Steam CDN certificate expired.
-RUN curl -sqL --insecure https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar zxvf -
-
-#FROM alpine:latest
-FROM ubuntu:latest
-
+# ✅ Ajuste: usar imagem ARM64 equivalente
+FROM ghcr.io/sonroyaalmerol/steamcmd-arm64:root AS builder
 
 # The TMOD Version. Ensure that you follow the correct format. Version releases can be found at https://github.com/tModLoader/tModLoader/releases if you're lost.
 ARG TMOD_VERSION=v2025.09.3.0
@@ -105,18 +93,14 @@ ENV TMOD_JOURNEY_SPAWN_RATE="0"
 # Set this to "Yes" if you would rather use a config file instead of the above settings.
 # ENV TMOD_USECONFIGFILE="No"
 
+RUN mv /home/steam/steamcmd/steamcmd.sh /home/steam/steamcmd/steamcmd && \
+    chmod +x /home/steam/steamcmd/steamcmd
 
-# Copy steamcmd and its required libs from the builder
-COPY --from=builder /root/installer/steamcmd.sh /usr/lib/games/steam/
-COPY --from=builder /root/installer/linux32/steamcmd /usr/lib/games/steam/
-COPY --from=builder /usr/games/steamcmd /usr/bin/steamcmd
-COPY --from=builder /etc/ssl/certs /etc/ssl/certs
-COPY --from=builder /lib/i386-linux-gnu /lib/
-COPY --from=builder /root/installer/linux32/libstdc++.so.6 /lib/
-RUN chown -R root:root /usr/bin/ /etc/ssl/certs /lib/ /usr/lib/
+ENV PATH="/home/steam/steamcmd:${PATH}"
 
 RUN apt-get update \
-    && apt-get install -y wget unzip tmux bash libsdl2-2.0-0
+    && apt-get install -y wget unzip tmux bash libsdl2-2.0-0 ca-certificates libicu-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /data
 RUN mkdir /data/tModLoader
@@ -127,8 +111,6 @@ RUN mkdir /data/steamMods
 EXPOSE 7777
 
 WORKDIR /terraria-server
-
-RUN steamcmd /terraria-server +login anonymous +quit
 
 RUN wget https://github.com/tModLoader/tModLoader/releases/download/${TMOD_VERSION}/tModLoader.zip
 RUN unzip -o tModLoader.zip \
@@ -150,5 +132,8 @@ RUN chmod 755 ./LaunchUtils/DotNetInstall.sh \
 
 RUN ./LaunchUtils/DotNetInstall.sh
 
+RUN chown -R steam:steam /terraria-server /data
 
+USER steam
+RUN steamcmd +login anonymous +quit
 ENTRYPOINT ["./entrypoint.sh"]

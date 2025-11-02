@@ -44,7 +44,6 @@ if [[ "$_uname" == *"_NT"* ]]; then
 	run_script ./Remove13_64Bit.sh  2>&1 | tee -a "$LogFile"
 fi
 
-. ./UnixLinkerFix.sh
 
 #Parse version from runtimeconfig, jq would be a better solution here, but its not installed by default on all distros.
 echo "Parsing .NET version requirements from runtimeconfig.json"  2>&1 | tee -a "$LogFile"
@@ -54,11 +53,7 @@ export dotnet_version=${dotnet_version%$'\r'} # remove trailing carriage return 
 # use this to check the output of sed. Expected output: "00000000 35 2e 30 2e 30 0a |5.0.0.| 00000006"
 # echo $(hexdump -C <<< "$version")
 export dotnet_dir="$root_dir/dotnet"
-if [[ -n "$IS_WSL" || -n "$WSL_DISTRO_NAME" ]]; then
-	echo "wsl detected. Setting dotnet_dir=dotnet_wsl"
-	export dotnet_dir="$root_dir/dotnet_wsl"
-fi
 export install_dir="$dotnet_dir/$dotnet_version"
 echo "Success!"  2>&1 | tee -a "$LogFile"
 
-run_script ./InstallNetFramework.sh  2>&1 | tee -a "$LogFile"
+run_script ./InstallDotNet.sh  2>&1 | tee -a "$LogFile"

@@ -83,7 +83,7 @@ else
 fi
 
 # Startup command
-server="/terraria-server/LaunchUtils/ScriptCaller.sh -server -tmlsavedirectory \"/data/tModLoader\" -steamworkshopfolder \"/data/steamMods/steamapps/workshop\" -config \"$configPath\""
+server="/terraria-server/start-tModLoaderServer.sh -nosteam -arm -tmlsavedirectory \"/data/tModLoader\" -steamworkshopfolder \"/data/steamMods/steamapps/workshop\" -config \"$configPath\""
 
 # Trap the shutdown
 trap shutdown TERM INT

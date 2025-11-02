@@ -1,8 +1,8 @@
 version: '3'
 services:
   tmodloader:
-    image: 'jacobsmile/tmodloader1.4:latest'
-    container_name: 'tmodloader'
+    image: 'tmodserver-arm64:latest'
+    container_name: 'tmodloader-arm64'
     ports:
       - "7777:7777"
     expose:

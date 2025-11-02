@@ -1,12 +1,10 @@
 version: '3'
 services:
   tmodloader:
-    image: 'tmodserver-arm64:latest'
+    image: 'ghcr.io/otomay/tmodloader1.4-arm64:latest'
     container_name: 'tmodloader-arm64'
     ports:
       - "7777:7777"
-    expose:
-      - "7777"
     environment:
       # Download the Calamity mod and CalamityMusic mod.
       - "TMOD_AUTODOWNLOAD=2824688072,2824688266"

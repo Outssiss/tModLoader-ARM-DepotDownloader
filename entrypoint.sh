@@ -41,6 +41,7 @@ if test -z "${TMOD_AUTODOWNLOAD}" ; then
 else
     echo -e "[SYSTEM] Downloading Mods specified in the TMOD_AUTODOWNLOAD Environment Variable. This may hand a while depending on the number of mods..."
     # Convert the Comma Separated list of Mod IDs to a list of SteamCMD commands and call SteamCMD to download them all.
+    steamcmd +login anonymous +quit # to install/update steamcmd
     steamcmd +force_install_dir /data/steamMods +login anonymous +workshop_download_item 1281930 `echo -e $TMOD_AUTODOWNLOAD | sed 's/,/ +workshop_download_item 1281930 /g'` +quit
     echo -e "[SYSTEM] Finished downloading mods."
 fi

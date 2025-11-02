@@ -1,5 +1,4 @@
 # Builder is ubuntu-based because we need i386 libs
-# ✅ Ajuste: usar imagem ARM64 equivalente
 FROM ghcr.io/sonroyaalmerol/steamcmd-arm64:root AS builder
 
 # The TMOD Version. Ensure that you follow the correct format. Version releases can be found at https://github.com/tModLoader/tModLoader/releases if you're lost.
@@ -135,5 +134,6 @@ RUN ./LaunchUtils/DotNetInstall.sh
 RUN chown -R steam:steam /terraria-server /data
 
 USER steam
-RUN steamcmd +login anonymous +quit
+# github runners has problems with it
+#RUN steamcmd +login anonymous +quit
 ENTRYPOINT ["./entrypoint.sh"]

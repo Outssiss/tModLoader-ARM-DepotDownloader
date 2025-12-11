@@ -2,7 +2,7 @@
 FROM ghcr.io/sonroyaalmerol/steamcmd-arm64:root AS builder
 
 # The TMOD Version. Ensure that you follow the correct format. Version releases can be found at https://github.com/tModLoader/tModLoader/releases if you're lost.
-ARG TMOD_VERSION=v2025.09.3.0
+ARG TMOD_VERSION=v2025.10.3.1
 
 # Sends update messages to the console before launch.
 ENV UPDATE_NOTICE="true"

@@ -1,77 +1,19 @@
 # Fork readme:
 
-* arm64 only, x64 is not supported
-* several things were broken when I tried to run in my arm device, such as scripts that no longer existed, etc., so there are a significant number of changes that haven’t been widely tested
-* I’m only mounting the “World” volume -- I’m not sure if this could cause loss of mod configurations on the server side (idk how this works)
-* mods are updated/downloaded every time the container restarts, so the mod files are always recreated
+Fork of [otomay/tmodloader1.4](https://github.com/otomay/tmodloader1.4) replacing steamcmd for DepotDownloader.
+
+## Why This Fork?
+For some reason, the version of steamcmd used on the forked was consistenyl failing on waiting for client info. This version uses the native ARM 64 version of DepotDownloader to take care of downloading the mods.
 
 ---
 
 # tModLoader Powered By Docker
-[![Discord](https://img.shields.io/discord/1132368789518950521?logo=discord&label=Discord%20Server&style=for-the-badge)](https://discord.gg/dHnVYYGed7)
-
-![Auto-Update Badge](https://img.shields.io/github/actions/workflow/status/jacobsmile/tmodloader1.4/tmodloader-check.yml?logo=github&label=tModLoader%20Auto-Updater&style=for-the-badge)
-
-![Contributors](https://img.shields.io/github/contributors/jacobsmile/tmodloader1.4?logo=github&style=for-the-badge)
-![Stars](https://img.shields.io/github/stars/jacobsmile/tmodloader1.4?logo=github&label=github%20stars&style=for-the-badge)
-![OpenIssues](https://img.shields.io/github/issues/jacobsmile/tmodloader1.4?logo=github&style=for-the-badge)
-![ClosedIssues](https://img.shields.io/github/issues-closed/jacobsmile/tmodloader1.4?logo=github&style=for-the-badge)
-
-[![DockerPulls](https://img.shields.io/docker/pulls/jacobsmile/tmodloader1.4?logo=docker&style=for-the-badge)](https://registry.hub.docker.com/r/jacobsmile/tmodloader1.4)
-[![DockerStars](https://img.shields.io/docker/stars/jacobsmile/tmodloader1.4?logo=docker&style=for-the-badge)](](https://registry.hub.docker.com/r/jacobsmile/tmodloader1.4))
-
-[![Unraid](https://img.shields.io/badge/Available_On_Unraid_Community_Apps!-gray?logo=unraid&link=https%3A%2F%2Funraid.net%2Fcommunity%2Fapps%3Fq%3Dtmodloader%23r&style=for-the-badge)](https://unraid.net/community/apps?q=tmodloader#r)
-
----
-
-[View on Github](https://github.com/JACOBSMILE/tmodloader1.4) |
-[View on Dockerhub](https://registry.hub.docker.com/r/jacobsmile/tmodloader1.4)
 
 This Docker Image is designed to allow for easy configuration and setup of a modded Terraria server powered by tModLoader.
 
-## Features
-- Easy Downloading of tModLoader mods by Workshop ID
-- Scheduled World Saving
-- Graceful Shutdowns
-- Configuration Files are optional
-- Github Automation to stay up-to-date with tModLoader's release cycle
-
-## Credits & Mentions
-- Terraria
-  - [Website](https://terraria.org/)
-  - [Steam Store Page](https://store.steampowered.com/app/105600/Terraria/)
-- tModLoader
-  - [Website](https://www.tmodloader.net/)
-  - [Steam Store Page](https://store.steampowered.com/app/1281930/tModLoader/)
-  - [Github](https://github.com/tModLoader/tModLoader)
-- [ldericher](https://github.com/ldericher/tmodloader-docker)'s Docker implementation of tModLoader for Terraria 1.3 and command injection functionality
-- [rfvgyhn](https://github.com/rfvgyhn/tmodloader-docker)'s Docker implementation of tModLoader for Terraria 1.3
-- [guillheu](https://github.com/guillheu/tmodloader-docker)'s Docker implementation of tModLoader for Terraria 1.4
-- [FlorentLM](https://github.com/FlorentLM/tmodloader1.4) For helping clean up the Dockerfile & resolving some security concerns.
-
-## Check out all of my Terraria Images!
-
-1.4 Vanilla Terraria: [Github](https://github.com/JACOBSMILE/terraria1.4) | [Dockerhub](https://hub.docker.com/r/jacobsmile/terraria1.4)
-
-1.4 tModLoader: [Github](https://github.com/JACOBSMILE/tmodloader1.4) | [Dockerhub](https://hub.docker.com/r/jacobsmile/tmodloader1.4)
-
-# Repository Automation & Daily Automated Builds
-The Github repository has been configured with an automated workflow to check for tModLoader updates daily and update the latest image and Dockerfile with the new tModLoader version. 
-
-Additionally, the Dockerhub registry will maintain all previous versions which are processed through this automated workflow. You can access these previous versions by pulling a repository with the tModLoader version string as the tag.
-
-## To Pull the Latest tModLoader Image
-
-```bash
-# ":latest" will pull the most recent tModLoader version from https://github.com/tModLoader/tModLoader/releases/latest
-docker pull jacobsmile/tmodloader1.4:latest
-```
-
-## To Pull a Specific tModLoader Image Version
-```bash
-# Replace 'v2022.09.47.13' with the version string found at https://github.com/tModLoader/tModLoader/releases
-docker pull jacobsmile/tmodloader1.4:v2022.09.47.13
-```
+## Credits
+- Original implementation: [JACOBSMILE/tmodloader1.4](https://github.com/JACOBSMILE/tmodloader1.4)
+- ARM64 adaptation: [otomay/tmodloader1.4](https://github.com/otomay/tmodloader1.4)
 
 # Container Preparation
 
@@ -91,22 +33,14 @@ mkdir /path/to/data/directory
 Within this directory, you will find the following file structure:
 ```
 /data/
-├─ steamMods/
-│  ├─ steamapps/
-│  │  ├─ workshop/
-│  │  │  ├─ content/
-│  │  │  │  ├─ 1281930/
-├─ tModLoader/
-│  ├─ ModConfigs/
-│  ├─ Mods/
-│  │  ├─ enabled.json
-│  ├─ Worlds/
+├─ Worlds/
+│  └─ YourWorld.wld
+├─ Mods/
+│  ├─ downloads/        (temp download folders)
+│  ├─ ModName.tmod
+│  └─ enabled.json
+└─ ModConfigs/
 ```
-
-Steam Workshop content is stored within `steamMods`.
-
-The server's Mod Configurations, Mod directory and World directories are stored within `tModLoader`.
-
 
 ## Downloading Mods
 Every Workshop item on Steam has a unique identifier which can be found by visiting the store page directly. For example, for the [Calamity Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=2824688072), you can find the Workshop ID from the URL. In this case, **2824688072** is the ID. This Docker container is capable of downloading tModLoader mods directly from the Steam Workshop to streamline the setup process.
@@ -117,6 +51,7 @@ For example, to tell the container to download Calamity and the Calamity Mod Mus
 ```bash
 -e TMOD_AUTODOWNLOAD=2824688072,2824688266
 ```
+**This fork uses DepotDownloader instead of SteamCMD for more reliable downloads on ARM64.**
 
 ---
 ## Enabling Mods
@@ -190,12 +125,12 @@ Refer to the [Terraria Server Wiki](https://terraria.fandom.com/wiki/Server) for
 ## Docker Command
 
 ```bash
-# Pull the image
-docker pull jacobsmile/tmodloader1.4:latest
+# Build the image
+docker build --platform linux/arm64 -t tmodloader-arm64 .
 
 # Execute the container
 docker run -p 7777:7777 --name tmodloader --rm \
-  -v /path/to/data:/data
+  -v /path/to/data:/data \
   -e TMOD_SHUTDOWN_MESSAGE='Goodbye!' \
   -e TMOD_AUTOSAVE_INTERVAL='15' \
   -e TMOD_AUTODOWNLOAD='2824688072,2824688266' \
@@ -207,17 +142,23 @@ docker run -p 7777:7777 --name tmodloader --rm \
   -e TMOD_WORLDSIZE='2' \
   -e TMOD_WORLDSEED='not the bees!' \
   -e TMOD_DIFFICULTY='3' \
-  jacobsmile/tmodloader1.4
+  tmodloader-arm64
 ```
 
-## Docker Compose
+## Updating DepotDownloader
+This Dockerfile uses a specific version of DepotDownloader. To update to a newer version:
+```dockerfile
+# In Dockerfile, change this line:
+ARG DEPOTDOWNLOADER_VERSION=DepotDownloader_3.4.0
 
-Included in the Github repository is a sample `docker-compose.yml` file. Refer to the contents of this file to learn how to configure this file. 
+# To the latest version from: https://github.com/SteamRE/DepotDownloader/releases
+```
 
-Once you are satisfied with the compose file, start it with the following command.
+Or build with a custom version:
 ```bash
-docker compose up --build
+docker build --build-arg DEPOTDOWNLOADER_VERSION=DepotDownloader_3.5.0 -t tmodloader-arm64 .
 ```
+
 
 # Interacting with the Server
 

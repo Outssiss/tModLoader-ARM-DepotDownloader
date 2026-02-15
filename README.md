@@ -4,7 +4,7 @@ Fork of [otomay/tmodloader1.4](https://github.com/otomay/tmodloader1.4) replacin
 
 ## Why This Fork?
 For some reason, the version of steamcmd used on the forked was consistenyl failing on waiting for client info. This version uses the native ARM 64 version of DepotDownloader to take care of downloading the mods.
-Tested on a Raspberry PI 5
+- Tested on a Raspberry PI 5
 ---
 
 # tModLoader Powered By Docker
@@ -173,6 +173,7 @@ _Credit to [ldericher](https://github.com/ldericher/tmodloader-docker) for this 
 
 # Notes
 I do not own tModLoader or Terraria. This Docker Image was created for players to easily host a game server with Docker, and is not intended to infringe on any Copyright, Trademark or Intellectual Property.
+
 
 
 

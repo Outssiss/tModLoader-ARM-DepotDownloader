@@ -88,7 +88,7 @@ ENV TMOD_JOURNEY_BIOME_SPREAD="0"
 ENV TMOD_JOURNEY_SPAWN_RATE="0"
 
 RUN apt-get update \
-    && apt-get install -y wget unzip tmux bash libsdl2-2.0-0 ca-certificates libicu-dev \
+    && apt-get install -y wget unzip tmux bash libsdl2-2.0-0 ca-certificates libicu-dev jq \
     && rm -rf /var/lib/apt/lists/*
 
 

@@ -38,9 +38,15 @@ mkdir -p "$MODDIR"
 # -------------------
 # Download Mods
 # -------------------
+REGISTRY_FILE="$MODDIR/mod_registry.json" #Maps mod id with name
+
+# Initialize registry if it doesn't exist
+if [ ! -f "$REGISTRY_FILE" ]; then
+   echo '{}' > "$REGISTRY_FILE"
+fi
+
 if test -z "${TMOD_AUTODOWNLOAD}" ; then
-   echo -e "[SYSTEM] No mods to download. If you wish to download mods at runtime, please set the TMOD_AUTODOWNLOAD environment variable equal to a comma separated list of Mod Workshop IDs."
-   echo -e "[SYSTEM] For more information, please see the Github README."
+   echo -e "[SYSTEM] No mods to download."
    sleep 5s
 else
    echo -e "[SYSTEM] Downloading mods with DepotDownloader..."
@@ -49,17 +55,19 @@ else
       echo -e "[SYSTEM] Downloading mod $mod_id..."
       depotdownloader -app 1281930 -pubfile "$mod_id" -dir "$DOWNLOADDIR/$mod_id" -validate -max-downloads 4
       
-      # DepotDownloader downloads ALL version of the mod, keep the last one only and delete the others.
       latest_version=$(find "$DOWNLOADDIR/$mod_id" -maxdepth 1 -type d -name "20*" | sort -V | tail -n 1)
       if [ -n "$latest_version" ]; then
          find "$DOWNLOADDIR/$mod_id" -maxdepth 1 -type d -name "20*" ! -path "$latest_version" -exec rm -rf {} +
-         echo -e "[SYSTEM] Kept latest version: $(basename "$latest_version")"
          
-         # Copy .tmod file to flat structure
          tmodfile=$(find "$latest_version" -type f -name "*.tmod" | head -n 1)
          if [ -n "$tmodfile" ]; then
-            cp -f "$tmodfile" "$MODDIR/"
-            echo -e "[SYSTEM] Copied $(basename "$tmodfile") to Mods directory"
+            modname=$(basename "${tmodfile%.tmod}")
+            mv -f "$tmodfile" "$MODDIR/"
+            
+            jq --arg id "$mod_id" --arg name "$modname" '. + {($id): $name}' "$REGISTRY_FILE" > "$REGISTRY_FILE.tmp" && mv "$REGISTRY_FILE.tmp" "$REGISTRY_FILE"
+            
+            echo -e "[SYSTEM] Registered $mod_id -> $modname"
+            rm -rf "$DOWNLOADDIR/$mod_id"
          fi
       fi
    done
@@ -78,21 +86,17 @@ else
    rm -f "$enabledpath"
    echo '[' > "$enabledpath"
    
-   echo -e "[SYSTEM] Enabling Mods specified in the TMOD_ENABLEDMODS Environment variable..."
+   echo -e "[SYSTEM] Enabling Mods..."
    first=true
    IFS=',' read -ra MODS <<< "$TMOD_ENABLEDMODS"
    for mod_id in "${MODS[@]}"; do
-       echo -e "[SYSTEM] Enabling $mod_id..."
+
+       modname=$(jq -r --arg id "$mod_id" '.[$id] // empty' "$REGISTRY_FILE")
        
-       # Find the specific mod for this mod_id in the downloads folder
-       modfile=$(find "$DOWNLOADDIR/$mod_id" -type f -name "*.tmod" 2>/dev/null | head -n 1)
-       
-       if [ -z "$modfile" ]; then
-           echo -e "[!!] Mod ID $mod_id not found!"
+       if [ -z "$modname" ]; then
+           echo -e "[!!] Mod ID $mod_id not found in registry!"
            continue
        fi
-       
-       modname=$(basename "${modfile%.tmod}")
        
        if [ "$first" = false ]; then
            echo "," >> "$enabledpath"

@@ -37,15 +37,15 @@ echo -e "[CONFIG] journeypermission_biomespread_setfrozen: $TMOD_JOURNEY_BIOME_S
 echo -e "[CONFIG] journeypermission_setspawnrate: $TMOD_JOURNEY_SPAWN_RATE"
 
 # Check if the world file exists.
-if [ -e "/terraria-server/Worlds/$TMOD_WORLDNAME.wld" ]; then
-    echo "world=/terraria-server/Worlds/$TMOD_WORLDNAME.wld" >> "$configPath"
-    echo "worldpath=/terraria-server/Worlds/" >> "$configPath"
+if [ -e "/data/Worlds/$TMOD_WORLDNAME.wld" ]; then
+    echo "world=/data/Worlds/$TMOD_WORLDNAME.wld" >> "$configPath"
+    echo "worldpath=/data/Worlds/" >> "$configPath"
 else
 # If it does not, alert the player, and set the startup parameters to automatically generate the world.
     echo -e "[!!] WARNING: The world \"$TMOD_WORLDNAME\" was not found. The server will automatically create a new world."
     sleep 3s
-    echo "world=/terraria-server/Worlds/$TMOD_WORLDNAME.wld" >> "$configPath"
-    echo "worldpath=/terraria-server/Worlds/" >> "$configPath"
+    echo "world=/data/Worlds/$TMOD_WORLDNAME.wld" >> "$configPath"
+    echo "worldpath=/data/Worlds/" >> "$configPath"
     echo "worldname=$TMOD_WORLDNAME" >> "$configPath"
     echo "autocreate=$TMOD_WORLDSIZE" >> "$configPath"
 fi

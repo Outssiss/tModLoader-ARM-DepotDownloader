@@ -1,5 +1,5 @@
 # Builder is ubuntu-based because we need i386 libs
-FROM ghcr.io/sonroyaalmerol/steamcmd-arm64:root AS builder
+FROM ubuntu:22.04
 
 # The TMOD Version. Ensure that you follow the correct format. Version releases can be found at https://github.com/tModLoader/tModLoader/releases if you're lost.
 ARG TMOD_VERSION=v2025.12.3.0
@@ -87,19 +87,22 @@ ENV TMOD_JOURNEY_BIOME_SPREAD="0"
 # journeypermission_setspawnrate
 ENV TMOD_JOURNEY_SPAWN_RATE="0"
 
-# [!!!] The section for using a config file has been deprecated in favor of the environment variable approach.
-# Loading a configuration file expects a proper Terraria config file to be mapped to /root/terraria-server/serverconfig.txt
-# Set this to "Yes" if you would rather use a config file instead of the above settings.
-# ENV TMOD_USECONFIGFILE="No"
-
-RUN mv /home/steam/steamcmd/steamcmd.sh /home/steam/steamcmd/steamcmd && \
-    chmod +x /home/steam/steamcmd/steamcmd
-
-ENV PATH="/home/steam/steamcmd:${PATH}"
-
 RUN apt-get update \
     && apt-get install -y wget unzip tmux bash libsdl2-2.0-0 ca-certificates libicu-dev \
     && rm -rf /var/lib/apt/lists/*
+
+
+ARG DEPOTDOWNLOADER_VERSION=DepotDownloader_3.4.0
+
+# Download and install native ARM64 DepotDownloader
+RUN wget https://github.com/SteamRE/DepotDownloader/releases/download/${DEPOTDOWNLOADER_VERSION}/DepotDownloader-linux-arm64.zip \
+    && unzip DepotDownloader-linux-arm64.zip -d /usr/local/depotdownloader \
+    && chmod +x /usr/local/depotdownloader/DepotDownloader \
+    && ln -s /usr/local/depotdownloader/DepotDownloader /usr/local/bin/depotdownloader \
+    && rm DepotDownloader-linux-arm64.zip
+
+# Create steam user for compatibility
+RUN useradd -m -u 1000 steam
 
 EXPOSE 7777
 
@@ -135,7 +138,14 @@ RUN chmod 755 ./entrypoint.sh \
 
 RUN chown -R steam:steam /terraria-server
 
+# Create data directory for persistent storage
+RUN mkdir -p /data/Worlds /data/Mods /data/ModConfigs \
+    && chown -R steam:steam /data
+
+
+RUN ln -sf /data/Mods /terraria-server/Mods \
+    && ln -sf /data/Worlds /terraria-server/Worlds \
+    && ln -sf /data/ModConfigs /terraria-server/ModConfigs
+
 USER steam
-# github runners has problems with it
-#RUN steamcmd +login anonymous +quit
 ENTRYPOINT ["./entrypoint.sh"]

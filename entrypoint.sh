@@ -1,5 +1,4 @@
 #!/bin/bash
-
 pipe=/tmp/tmod.pipe
 
 echo -e "[SYSTEM] Shutdown Message set to: $TMOD_SHUTDOWN_MESSAGE"
@@ -7,110 +6,122 @@ echo -e "[SYSTEM] Save Interval set to: $TMOD_AUTOSAVE_INTERVAL minutes"
 
 # Check Config
 if [[ "$TMOD_USECONFIGFILE" == "Yes" ]]; then
-    if [ -e /terraria-server/customconfig.txt ]; then
-        echo -e "[!!] The tModLoader server was set to load with a config file. It will be used instead of the environment variables."
-    else
-        echo -e "[!!] FATAL: The tModLoader server was set to launch with a config file, but it was not found. Please map the file to /terraria-server/customconfig.txt and launch the server again."
-        sleep 5s
-        exit 1
-    fi
+   if [ -e /terraria-server/customconfig.txt ]; then
+       echo -e "[!!] The tModLoader server was set to load with a config file. It will be used instead of the environment variables."
+   else
+       echo -e "[!!] FATAL: The tModLoader server was set to launch with a config file, but it was not found. Please map the file to /terraria-server/customconfig.txt and launch the server again."
+       sleep 5s
+       exit 1
+   fi
 else
-  ./prepare-config.sh
+ ./prepare-config.sh
 fi
 
 # Trapped Shutdown, to cleanly shutdown
 function shutdown () {
-  inject "say $TMOD_SHUTDOWN_MESSAGE"
-  sleep 3s
-  inject "exit"
-  tmuxPid=$(pgrep tmux)
-  tmodPid=$(pgrep --oldest --parent $tmuxPid)
-  while [ -e /proc/$tmodPid ]; do
-    sleep .5
-  done
-  rm $pipe
+ inject "say $TMOD_SHUTDOWN_MESSAGE"
+ sleep 3s
+ inject "exit"
+ tmuxPid=$(pgrep tmux)
+ tmodPid=$(pgrep --oldest --parent $tmuxPid)
+ while [ -e /proc/$tmodPid ]; do
+   sleep .5
+ done
+ rm $pipe
 }
 
-MODDIR="/terraria-server/Mods"
+DOWNLOADDIR="/data/Mods/downloads"
+MODDIR="/data/Mods"
+mkdir -p "$DOWNLOADDIR"
 mkdir -p "$MODDIR"
 
 # -------------------
 # Download Mods
 # -------------------
 if test -z "${TMOD_AUTODOWNLOAD}" ; then
-    echo -e "[SYSTEM] No mods to download. If you wish to download mods at runtime, please set the TMOD_AUTODOWNLOAD environment variable equal to a comma separated list of Mod Workshop IDs."
-    echo -e "[SYSTEM] For more information, please see the Github README."
-    sleep 5s
+   echo -e "[SYSTEM] No mods to download. If you wish to download mods at runtime, please set the TMOD_AUTODOWNLOAD environment variable equal to a comma separated list of Mod Workshop IDs."
+   echo -e "[SYSTEM] For more information, please see the Github README."
+   sleep 5s
 else
-    echo -e "[SYSTEM] Writing Mod IDs to install.txt..."
-
-    echo "$TMOD_AUTODOWNLOAD" | tr "," "\n" > "$MODDIR/install.txt"
-    ./manage-tModLoaderServer.sh install-mods --folder /terraria-server
-    echo -e "[SYSTEM] Finished writing install.txt"
+   echo -e "[SYSTEM] Downloading mods with DepotDownloader..."
+   IFS=',' read -ra MODS <<< "$TMOD_AUTODOWNLOAD"
+   for mod_id in "${MODS[@]}"; do
+      echo -e "[SYSTEM] Downloading mod $mod_id..."
+      depotdownloader -app 1281930 -pubfile "$mod_id" -dir "$DOWNLOADDIR/$mod_id" -validate -max-downloads 4
+      
+      # DepotDownloader downloads ALL version of the mod, keep the last one only and delete the others.
+      latest_version=$(find "$DOWNLOADDIR/$mod_id" -maxdepth 1 -type d -name "20*" | sort -V | tail -n 1)
+      if [ -n "$latest_version" ]; then
+         find "$DOWNLOADDIR/$mod_id" -maxdepth 1 -type d -name "20*" ! -path "$latest_version" -exec rm -rf {} +
+         echo -e "[SYSTEM] Kept latest version: $(basename "$latest_version")"
+         
+         # Copy .tmod file to flat structure
+         tmodfile=$(find "$latest_version" -type f -name "*.tmod" | head -n 1)
+         if [ -n "$tmodfile" ]; then
+            cp -f "$tmodfile" "$MODDIR/"
+            echo -e "[SYSTEM] Copied $(basename "$tmodfile") to Mods directory"
+         fi
+      fi
+   done
+   echo -e "[SYSTEM] Finished downloading mods."
 fi
 
 # -------------------
 # Enable Mods
 # -------------------
 enabledpath="$MODDIR/enabled.json"
-modpath="/terraria-server/steamapps/workshop/content/1281930"
 
 if test -z "${TMOD_ENABLEDMODS}" ; then
-    echo -e "[SYSTEM] The TMOD_ENABLEDMODS environment variable is not set. Defaulting to the mods specified in $enabledpath"
-    echo -e "[SYSTEM] To change which mods are enabled, set the TMOD_ENABLEDMODS environment variable to a comma separated list of mod Workshop IDs."
-    echo -e "[SYSTEM] For more information, please see the Github README."
-    sleep 5s
+   echo -e "[SYSTEM] The TMOD_ENABLEDMODS environment variable is not set."
+   sleep 5s
 else
-    rm -f "$enabledpath"
-    touch "$enabledpath"
-
-    echo -e "[SYSTEM] Enabling Mods specified in the TMOD_ENABLEDMODS Environment variable..."
-    echo '[' >> "$enabledpath"
-
-    echo "$TMOD_ENABLEDMODS" | tr "," "\n" | while read LINE
-    do
-        echo -e "[SYSTEM] Enabling $LINE..."
-
-        modfile=$(find "$modpath/$LINE" -name '*.tmod' | sort | uniq | tail -n 1)
-        modname=$(basename "${modfile%.tmod}")
-
-        if [ -z "$modfile" ]; then
-            echo -e "[!!] Mod ID $LINE not found! Has it been downloaded?"
-            continue
-        fi
-
-        cp -f "$modfile" /terraria-server/Mods/
-
-        if [ $? -ne 0 ]; then
-            echo -e "[!!] Falha ao copiar o mod $modname de $modfile"
-            continue
-        fi
-
-        echo "  \"$modname\"," >> "$enabledpath"
-        echo -e "[SYSTEM] Enabled $modname ($LINE)"
-    done
-
-    sed -i '$ s/,$//' "$enabledpath"
-    echo ']' >> "$enabledpath"
-    echo -e "\n[SYSTEM] Finished loading mods."
+   rm -f "$enabledpath"
+   echo '[' > "$enabledpath"
+   
+   echo -e "[SYSTEM] Enabling Mods specified in the TMOD_ENABLEDMODS Environment variable..."
+   first=true
+   IFS=',' read -ra MODS <<< "$TMOD_ENABLEDMODS"
+   for mod_id in "${MODS[@]}"; do
+       echo -e "[SYSTEM] Enabling $mod_id..."
+       
+       # Find the specific mod for this mod_id in the downloads folder
+       modfile=$(find "$DOWNLOADDIR/$mod_id" -type f -name "*.tmod" 2>/dev/null | head -n 1)
+       
+       if [ -z "$modfile" ]; then
+           echo -e "[!!] Mod ID $mod_id not found!"
+           continue
+       fi
+       
+       modname=$(basename "${modfile%.tmod}")
+       
+       if [ "$first" = false ]; then
+           echo "," >> "$enabledpath"
+       fi
+       echo -n "  \"$modname\"" >> "$enabledpath"
+       first=false
+       
+       echo -e "[SYSTEM] Enabled $modname ($mod_id)"
+   done
+   
+   echo '' >> "$enabledpath"
+   echo ']' >> "$enabledpath"
+   echo -e "\n[SYSTEM] Finished loading mods."
 fi
-
-
-
 # Startup command
 server="./manage-tModLoaderServer.sh docker --folder /terraria-server"
 
 # Trap the shutdown
 trap shutdown TERM INT
+
 echo -e "tModLoader is launching with the following command:"
 echo -e $server
 
 # Check if the pipe exists already and remove it.
 if [ -e "$pipe" ]; then
-  rm $pipe
+ rm $pipe
 fi
 
-# Create the tmux and pipe, so we can inject commands from 'docker exec [container id] inject [command]' on the host
+# Create the tmux and pipe
 sleep 5s
 mkfifo $pipe
 tmux new-session -d "$server | tee $pipe"
@@ -118,6 +129,6 @@ tmux new-session -d "$server | tee $pipe"
 # Call the autosaver
 /terraria-server/autosave.sh &
 
-# Infinitely print the contents of the pipe, so the container still logs the Terraria Server.
+# Infinitely print the contents of the pipe
 cat $pipe &
 wait ${!}
